@@ -1,7 +1,10 @@
 const MIN_PASSWORD_LENGTH = 8
 const LOCK_TIMEOUT = 5  // 5 seconds // default timeout to avoid brute force attacks
 const SMS_CODE_LENGTH = 4
-const SMS_CODE_TTL = 60 // seconds
+
+const SMS_CODE_TTL = 5 * 60 // seconds, 5 minutes for user to receive sms code and type it in confirmation screen
+const LOCK_FOR_SMS_TO_SAME_PHONE_NUMBER = 60 // seconds, 1 minute for user before he can send another sms from sms gate
+
 const CONFIRM_PHONE_ACTION_EXPIRY = 3600 // 1 hour
 const CONFIRM_PHONE_SMS_MAX_RETRIES = 10
 const SAFE_CAPTCHA_SCORE = 0.5
@@ -18,6 +21,7 @@ const USER_TYPES = [STAFF, RESIDENT, SERVICE]
 module.exports = {
     MIN_PASSWORD_LENGTH,
     LOCK_TIMEOUT,
+    LOCK_FOR_SMS_TO_SAME_PHONE_NUMBER,
     SMS_CODE_LENGTH,
     SMS_CODE_TTL,
     CONFIRM_PHONE_ACTION_EXPIRY,

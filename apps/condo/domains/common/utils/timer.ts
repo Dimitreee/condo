@@ -25,17 +25,27 @@ export const timer = (args: ITimerArguments) => {
 
     const countDownDate = new Date(nextDate).getTime()
 
-    const update = setInterval(() => {
+    const updateInterval = setInterval(() => {
         const now = new Date().getTime()
         const distance = countDownDate - now
 
         onUpdate(Math.ceil((distance % (1000 * 60)) / 1000))
 
         if (distance < 0) {
-            clearInterval(update)
+            clearInterval(updateInterval)
             if (onFinish) {
                 onFinish()
             }
         }
     }, step)
+
+    const recreate = (newDuration) => {
+        if (updateInterval) {
+            clearInterval(updateInterval)
+        }
+        const newTimer = timer({ ...args, duration: newDuration })
+        return newTimer
+    }
+
+    return { recreate }
 }

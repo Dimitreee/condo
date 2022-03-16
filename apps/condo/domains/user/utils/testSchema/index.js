@@ -26,6 +26,7 @@ const createTestLandlineNumber = () => faker.phone.phoneNumber('+7343#######')
 
 const {
     SMS_CODE_TTL,
+    LOCK_FOR_SMS_TO_SAME_PHONE_NUMBER,
     CONFIRM_PHONE_ACTION_EXPIRY,
 } = require('@condo/domains/user/constants/common')
 const { RESIDENT, STAFF } = require('@condo/domains/user/constants/common')

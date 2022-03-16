@@ -31,6 +31,7 @@ const {
     LOCK_TIMEOUT,
     SMS_CODE_LENGTH,
     SMS_CODE_TTL,
+    LOCK_FOR_SMS_TO_SAME_PHONE_NUMBER,
     CONFIRM_PHONE_ACTION_EXPIRY,
     CONFIRM_PHONE_SMS_MAX_RETRIES,
 } = require('@condo/domains/user/constants/common')
@@ -187,7 +188,7 @@ const ConfirmPhoneActionService = new GQLCustomSchema('ConfirmPhoneActionService
                 }
                 await redisGuard.checkSMSDayLimitCounters(phone, context.req.ip)
                 await redisGuard.checkLock(phone, 'sendsms')
-                await redisGuard.lock(phone, 'sendsms', SMS_CODE_TTL)
+                await redisGuard.lock(phone, 'sendsms', LOCK_FOR_SMS_TO_SAME_PHONE_NUMBER)
                 const token = uuid()
                 const now = extra.extraNow || Date.now()
                 const requestedAt = new Date(now).toISOString()
@@ -242,7 +243,7 @@ const ConfirmPhoneActionService = new GQLCustomSchema('ConfirmPhoneActionService
                 const { id, phone } = actions[0]
                 await redisGuard.checkSMSDayLimitCounters(phone, context.req.ip)
                 await redisGuard.checkLock(phone, 'sendsms')
-                await redisGuard.lock(phone, 'sendsms', SMS_CODE_TTL)
+                await redisGuard.lock(phone, 'sendsms', LOCK_FOR_SMS_TO_SAME_PHONE_NUMBER)
                 const newSmsCode = generateSmsCode(phone)
                 await ConfirmPhoneActionUtils.update(context, id, {
                     smsCode: newSmsCode,

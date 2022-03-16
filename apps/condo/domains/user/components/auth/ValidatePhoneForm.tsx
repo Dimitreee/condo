@@ -8,7 +8,7 @@ import { CountDownTimer } from '@condo/domains/common/components/CountDownTimer'
 import { formatPhone } from '@condo/domains/common/utils/helpers'
 import { runMutation } from '@condo/domains/common/utils/mutations.utils'
 import { getClientSideSenderInfo } from '@condo/domains/common/utils/userid.utils'
-import { SMS_CODE_LENGTH, SMS_CODE_TTL } from '@condo/domains/user/constants/common'
+import { SMS_CODE_LENGTH, LOCK_FOR_SMS_TO_SAME_PHONE_NUMBER } from '@condo/domains/user/constants/common'
 import {
     CONFIRM_PHONE_ACTION_EXPIRED,
     CONFIRM_PHONE_SMS_CODE_EXPIRED,
@@ -193,7 +193,7 @@ export const ValidatePhoneForm = ({ onFinish, onReset }): React.ReactElement<IVa
                     </Form.Item>
                 </Col>
                 <Col span={24}>
-                    <CountDownTimer action={resendSms} id={'RESEND_SMS'} timeout={SMS_CODE_TTL} autostart={true}>
+                    <CountDownTimer action={resendSms} id={'RESEND_SMS'} timeout={LOCK_FOR_SMS_TO_SAME_PHONE_NUMBER} autostart={true}>
                         {({ countdown, runAction }) => {
                             const isCountDownActive = countdown > 0
                             return (

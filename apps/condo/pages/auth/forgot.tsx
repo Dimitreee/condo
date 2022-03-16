@@ -9,7 +9,7 @@ import { useMutation } from '@core/next/apollo'
 import { START_CONFIRM_PHONE_MUTATION } from '@condo/domains/user/gql'
 import { WRONG_PHONE_ERROR, TOO_MANY_REQUESTS } from '@condo/domains/user/constants/errors'
 import { getClientSideSenderInfo } from '@condo/domains/common/utils/userid.utils'
-import { SMS_CODE_TTL } from '@condo/domains/user/constants/common'
+import { LOCK_FOR_SMS_TO_SAME_PHONE_NUMBER } from '@condo/domains/user/constants/common'
 import { CountDownTimer } from '@condo/domains/common/components/CountDownTimer'
 import { ButtonHeaderActions } from '@condo/domains/common/components/HeaderActions'
 import { useValidations } from '@condo/domains/common/hooks/useValidations'
@@ -19,6 +19,7 @@ import { useGoogleReCaptcha } from 'react-google-recaptcha-v3'
 import { normalizePhone } from '@condo/domains/common/utils/phone'
 import { RegisterContext, RegisterContextProvider } from '@condo/domains/user/components/auth/RegisterContextProvider'
 import { Loader } from '@condo/domains/common/components/Loader'
+import { get } from 'lodash'
 
 const FORM_LAYOUT = {
     labelCol: { span: 10 },
@@ -100,6 +101,19 @@ function ResetPageView () {
             intl,
             form,
             ErrorToFormFieldMsgMapping,
+            onError: (error) => {
+                console.log('onError', JSON.stringify(error, null, 2))
+                if (error.graphQLErrors && Array.isArray(error.graphQLErrors)) {
+                    const timeoutError = error.graphQLErrors.find(({ message = '' }) => message.indexOf(TOO_MANY_REQUESTS) === 0)
+                    if (timeoutError) {
+                        const timeRemain = get(timeoutError, ['data', 'timeRemain'], LOCK_FOR_SMS_TO_SAME_PHONE_NUMBER)
+                        setIsLoading(false)
+                        console.log('onErrorReturn', { timeRemain })
+                        return { timeRemain }
+                    }
+                }
+                throw error
+            },
         }).catch(err => {
             console.error(err)
             setIsLoading(false)
@@ -140,17 +154,23 @@ function ResetPageView () {
                             </Col>
                             <Col span={24}>
                                 <Form.Item>
-                                    <CountDownTimer action={startConfirmPhoneAction} id={'FORGOT_ACTION'} timeout={SMS_CODE_TTL}>
-                                        {({ countdown, runAction }) => {
+                                    <CountDownTimer action={startConfirmPhoneAction} id={'FORGOT_ACTION'} timeout={LOCK_FOR_SMS_TO_SAME_PHONE_NUMBER}>
+                                        {({ countdown, runAction, timerRef }) => {
                                             const isCountDownActive = countdown > 0
                                             return (
                                                 <Button
-                                                    onClick={() => {
-                                                        form.validateFields().then(() => {
-                                                            runAction()
-                                                        }).catch(_ => {
-                                                        // validation check failed - don't invoke runAction
-                                                        })
+                                                    onClick={async () => {
+                                                        console.log('Clicked!')
+                                                        try {
+                                                            await form.validateFields()
+                                                            const result = await runAction()
+                                                            console.log('Result', JSON.stringify(result, null, 2))
+                                                            if (result && get(result, 'timeRemain') && timerRef.current) {
+                                                                timerRef.current.recreate(result)
+                                                            }
+                                                        } catch (error) {
+                                                            console.log('Error', JSON.stringify(error, null, 2))
+                                                        }
                                                     }}
                                                     type={isCountDownActive ? 'sberGrey' : 'sberPrimary'}
                                                     disabled={isCountDownActive}

@@ -1,5 +1,5 @@
 import get from 'lodash/get'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { timer } from '../utils/timer'
 import { extractRootDomain } from '@condo/domains/common/utils/url.utils.js'
 
@@ -45,7 +45,7 @@ const getCountDownDateFromCookies = (countDownId) => {
 
 type CountDownChildrenType = (
     // TODO(Dimitreee): remove any
-    { countdown, runAction, loading }: { countdown: number, runAction: () => Promise<any>, loading: boolean }
+    { countdown, runAction, loading, timerRef }: { countdown: number, timerRef:  React.MutableRefObject<any>, runAction: () => Promise<any>, loading: boolean }
 ) => JSX.Element
 
 interface ICountDownTimer {
@@ -62,9 +62,10 @@ export const CountDownTimer: React.FC<ICountDownTimer> = (props) => {
 
     const [loading, setLoading] = useState(false)
     const [countdown, setCountDown] = useState(0)
+    const timerRef = useRef(null)
 
     const startTimer = React.useCallback((duration) => {
-        timer({
+        timerRef.current = timer({
             duration,
             onStart: (countDownDate) => {
                 setCountDownDate(countDownDate, id)
@@ -77,7 +78,7 @@ export const CountDownTimer: React.FC<ICountDownTimer> = (props) => {
                 setCountDownDate(0, id)
             },
         })
-    }, [])
+    }, [timeout])
 
     useEffect(() => {
         const countDownFromCookies = getCountDownDateFromCookies(id)
@@ -109,5 +110,5 @@ export const CountDownTimer: React.FC<ICountDownTimer> = (props) => {
             })
     }
 
-    return props.children({ countdown, runAction, loading })
+    return props.children({ countdown, timerRef, runAction, loading })
 }
