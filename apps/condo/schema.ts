@@ -14850,7 +14850,7 @@ export type Mutation = {
    * 			"required": true
    * 		}
    * 	},
-   * 	"MESSAGE_FORWARDED_TO_SUPPORT_TYPE": {
+   * 	"MESSAGE_FORWARDED_TO_SUPPORT": {
    * 		"dv": {
    * 			"defaultValue": "",
    * 			"required": true
@@ -24001,6 +24001,39 @@ export type Query = {
    */
   checkPasswordRecoveryToken?: Maybe<CheckPasswordRecoveryTokenOutput>;
   getPhoneByConfirmPhoneActionToken?: Maybe<GetPhoneByConfirmPhoneActionTokenOutput>;
+  /**
+   * Tells, whether a Property with given address exists in condo database
+   *
+   * In specified address string a part up to building will be taken into account. So, it will make no sense when something more precise, like apartment number, will be specified.
+   *
+   * **Errors**
+   *
+   * Following objects will be presented in `extensions` property of thrown error
+   *
+   * `{
+   *   "query": "checkPropertyWithAddressExist",
+   *   "variable": [
+   *     "data",
+   *     "addressMeta",
+   *     "dv"
+   *   ],
+   *   "code": "BAD_USER_INPUT",
+   *   "type": "DV_VERSION_MISMATCH",
+   *   "message": "Version number value {dv} is incorrect"
+   * }`
+   *
+   * `{
+   *   "query": "checkPropertyWithAddressExist",
+   *   "variable": [
+   *     "data",
+   *     "addressMeta",
+   *     "flatType"
+   *   ],
+   *   "code": "BAD_USER_INPUT",
+   *   "type": "FLAT_WITHOUT_FLAT_TYPE",
+   *   "message": "Flat type is not specified"
+   * }`
+   */
   checkPropertyWithAddressExist?: Maybe<CheckPropertyWithAddressExistOutput>;
   exportPropertiesToExcel?: Maybe<ExportPropertiesToExcelOutput>;
   allResidentBillingReceipts?: Maybe<Array<Maybe<ResidentBillingReceiptOutput>>>;
@@ -27654,7 +27687,7 @@ export enum SendMessageType {
   ShareTicket = 'SHARE_TICKET',
   DeveloperImportantNoteType = 'DEVELOPER_IMPORTANT_NOTE_TYPE',
   CustomerImportantNoteType = 'CUSTOMER_IMPORTANT_NOTE_TYPE',
-  MessageForwardedToSupport = 'MESSAGE_FORWARDED_TO_SUPPORT_TYPE',
+  MessageForwardedToSupport = 'MESSAGE_FORWARDED_TO_SUPPORT',
   TicketAssigneeConnected = 'TICKET_ASSIGNEE_CONNECTED',
   TicketExecutorConnected = 'TICKET_EXECUTOR_CONNECTED'
 }
@@ -31986,6 +32019,8 @@ export enum SortTicketClassifiersBy {
 export enum SortTicketCommentHistoryRecordsBy {
   DvAsc = 'dv_ASC',
   DvDesc = 'dv_DESC',
+  TypeAsc = 'type_ASC',
+  TypeDesc = 'type_DESC',
   ContentAsc = 'content_ASC',
   ContentDesc = 'content_DESC',
   IdAsc = 'id_ASC',
@@ -32007,6 +32042,8 @@ export enum SortTicketCommentHistoryRecordsBy {
 export enum SortTicketCommentsBy {
   DvAsc = 'dv_ASC',
   DvDesc = 'dv_DESC',
+  TypeAsc = 'type_ASC',
+  TypeDesc = 'type_DESC',
   TicketAsc = 'ticket_ASC',
   TicketDesc = 'ticket_DESC',
   UserAsc = 'user_ASC',
@@ -35519,6 +35556,8 @@ export type TicketComment = {
   dv?: Maybe<Scalars['Int']>;
   /**  Client-side device identification used for the anti-fraud detection. Example `{ dv: 1, fingerprint: 'VaxSw2aXZa'}`. Where the `fingerprint` should be the same for the same devices and it's not linked to the user ID. It's the device ID like browser / mobile application / remote system  */
   sender?: Maybe<SenderField>;
+  /**  Comment type (internal for an organization or with a resident)  */
+  type?: Maybe<Scalars['String']>;
   /**  Related ticket of the comment  */
   ticket?: Maybe<Ticket>;
   /**  User, who created the comment  */
@@ -35538,6 +35577,7 @@ export type TicketComment = {
 export type TicketCommentCreateInput = {
   dv?: Maybe<Scalars['Int']>;
   sender?: Maybe<SenderFieldInput>;
+  type?: Maybe<Scalars['String']>;
   ticket?: Maybe<TicketRelateToOneInput>;
   user?: Maybe<UserRelateToOneInput>;
   content?: Maybe<Scalars['String']>;
@@ -35563,6 +35603,7 @@ export type TicketCommentHistoryRecord = {
   _label_?: Maybe<Scalars['String']>;
   dv?: Maybe<Scalars['Int']>;
   sender?: Maybe<Scalars['JSON']>;
+  type?: Maybe<Scalars['String']>;
   ticket?: Maybe<Scalars['String']>;
   user?: Maybe<Scalars['String']>;
   content?: Maybe<Scalars['String']>;
@@ -35582,6 +35623,7 @@ export type TicketCommentHistoryRecord = {
 export type TicketCommentHistoryRecordCreateInput = {
   dv?: Maybe<Scalars['Int']>;
   sender?: Maybe<Scalars['JSON']>;
+  type?: Maybe<Scalars['String']>;
   ticket?: Maybe<Scalars['String']>;
   user?: Maybe<Scalars['String']>;
   content?: Maybe<Scalars['String']>;
@@ -35606,6 +35648,7 @@ export enum TicketCommentHistoryRecordHistoryActionType {
 export type TicketCommentHistoryRecordUpdateInput = {
   dv?: Maybe<Scalars['Int']>;
   sender?: Maybe<Scalars['JSON']>;
+  type?: Maybe<Scalars['String']>;
   ticket?: Maybe<Scalars['String']>;
   user?: Maybe<Scalars['String']>;
   content?: Maybe<Scalars['String']>;
@@ -35636,6 +35679,24 @@ export type TicketCommentHistoryRecordWhereInput = {
   sender_not?: Maybe<Scalars['JSON']>;
   sender_in?: Maybe<Array<Maybe<Scalars['JSON']>>>;
   sender_not_in?: Maybe<Array<Maybe<Scalars['JSON']>>>;
+  type?: Maybe<Scalars['String']>;
+  type_not?: Maybe<Scalars['String']>;
+  type_contains?: Maybe<Scalars['String']>;
+  type_not_contains?: Maybe<Scalars['String']>;
+  type_starts_with?: Maybe<Scalars['String']>;
+  type_not_starts_with?: Maybe<Scalars['String']>;
+  type_ends_with?: Maybe<Scalars['String']>;
+  type_not_ends_with?: Maybe<Scalars['String']>;
+  type_i?: Maybe<Scalars['String']>;
+  type_not_i?: Maybe<Scalars['String']>;
+  type_contains_i?: Maybe<Scalars['String']>;
+  type_not_contains_i?: Maybe<Scalars['String']>;
+  type_starts_with_i?: Maybe<Scalars['String']>;
+  type_not_starts_with_i?: Maybe<Scalars['String']>;
+  type_ends_with_i?: Maybe<Scalars['String']>;
+  type_not_ends_with_i?: Maybe<Scalars['String']>;
+  type_in?: Maybe<Array<Maybe<Scalars['String']>>>;
+  type_not_in?: Maybe<Array<Maybe<Scalars['String']>>>;
   ticket?: Maybe<Scalars['String']>;
   ticket_not?: Maybe<Scalars['String']>;
   ticket_in?: Maybe<Array<Maybe<Scalars['String']>>>;
@@ -35744,6 +35805,7 @@ export type TicketCommentHistoryRecordsUpdateInput = {
 export type TicketCommentUpdateInput = {
   dv?: Maybe<Scalars['Int']>;
   sender?: Maybe<SenderFieldInput>;
+  type?: Maybe<Scalars['String']>;
   ticket?: Maybe<TicketRelateToOneInput>;
   user?: Maybe<UserRelateToOneInput>;
   content?: Maybe<Scalars['String']>;
@@ -35771,6 +35833,10 @@ export type TicketCommentWhereInput = {
   sender_not?: Maybe<SenderFieldInput>;
   sender_in?: Maybe<Array<Maybe<SenderFieldInput>>>;
   sender_not_in?: Maybe<Array<Maybe<SenderFieldInput>>>;
+  type?: Maybe<Scalars['String']>;
+  type_not?: Maybe<Scalars['String']>;
+  type_in?: Maybe<Array<Maybe<Scalars['String']>>>;
+  type_not_in?: Maybe<Array<Maybe<Scalars['String']>>>;
   ticket?: Maybe<TicketWhereInput>;
   ticket_is_null?: Maybe<Scalars['Boolean']>;
   user?: Maybe<UserWhereInput>;
