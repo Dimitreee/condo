@@ -8,6 +8,7 @@ const { historical, versioned, uuided, tracked, softDeleted } = require('@core/k
 const { SENDER_FIELD, DV_FIELD } = require('@condo/domains/common/schema/fields')
 const access = require('@condo/domains/ticket/access/TicketComment')
 const { COMMENT_TYPES } = require('@condo/domains/ticket/constants')
+const { Json } = require('@core/keystone/fields')
 
 
 const TicketComment = new GQLListSchema('TicketComment', {
@@ -55,6 +56,11 @@ const TicketComment = new GQLListSchema('TicketComment', {
             isRequired: true,
         },
 
+        meta: {
+            schemaDoc: 'Ticket comment meta',
+            type: Json,
+            isRequired: false,
+        },
     },
     plugins: [
         uuided(), versioned(),
