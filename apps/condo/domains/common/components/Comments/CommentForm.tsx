@@ -1,6 +1,7 @@
-import React, { CSSProperties, useEffect } from 'react'
+import React, { CSSProperties, useCallback, useEffect } from 'react'
 import { FormWithAction } from '../containers/FormList'
 import { Col, Form, FormInstance, Input, Row, Typography } from 'antd'
+import { PaperClipOutlined } from '@ant-design/icons'
 import { Button } from '@condo/domains/common/components/Button'
 import Icon from '@ant-design/icons'
 import { useIntl } from '@core/next/intl'
@@ -10,14 +11,17 @@ import { useState } from 'react'
 import { useValidations } from '@condo/domains/common/hooks/useValidations'
 import { useInputWithCounter } from '../../hooks/useInputWithCounter'
 import { colors } from '@condo/domains/common/constants/style'
+import { useMultipleFileUploadHook } from '../MultipleFileUpload'
+import { TicketCommentFile, TicketFile } from '../../../ticket/utils/clientSchema'
+import { useOrganization } from '@core/next/organization'
 
 const Holder = styled.div`
-  position: relative;
-  button.ant-btn {
-    position: absolute;
-    right: 7px;
-    bottom: 8px;
-  }
+  //position: relative;
+  //button.ant-btn {
+  //  position: absolute;
+  //  right: 7px;
+  //  bottom: 8px;
+  //}
   .ant-form-item-explain {
     display: none;
   }
@@ -58,14 +62,27 @@ const CommentForm: React.FC<ICommentFormProps> = ({ initialValue, action, fieldN
     const { InputWithCounter, Counter, setTextLength: setCommentLength, textLength: commentLength } = useInputWithCounter(Input.TextArea, MAX_COMMENT_LENGTH)
     const [form, setForm] = useState<FormInstance>()
 
+    const { organization } = useOrganization()
+
+    const { UploadComponent, syncModifiedFiles } = useMultipleFileUploadHook({
+        Model: TicketCommentFile,
+        relationField: 'ticketComment',
+        initialFileList: editableComment?.meta?.files,
+        initialCreateValues: { organization: organization.id },
+        dependenciesForRerenderUploadComponent: [editableComment],
+    })
+
     useEffect(() => {
         if (editableComment && form) {
             form.setFieldsValue({ [fieldName]: editableComment.content })
         }
     }, [editableComment, fieldName, form])
 
-    const handleKeyUp = (event, form) => {
+    const handleKeyUp = async (event, form) => {
         if (event.keyCode === 13 && !event.shiftKey) {
+            if (editableComment) {
+                await syncModifiedFiles(editableComment.id)
+            }
             form.submit()
             setCommentLength(0)
         }
@@ -81,6 +98,17 @@ const CommentForm: React.FC<ICommentFormProps> = ({ initialValue, action, fieldN
     const validations = {
         comment: [requiredValidator, trimValidator],
     }
+
+    const Mem = useCallback(() => (
+        <UploadComponent
+            initialFileList={editableComment?.meta?.files}
+            UploadButton={() => (
+                <Button type={'text'}>
+                    <PaperClipOutlined />
+                </Button>
+            )}
+        />
+    ), [UploadComponent, editableComment])
 
     return (
         <>
@@ -125,17 +153,7 @@ const CommentForm: React.FC<ICommentFormProps> = ({ initialValue, action, fieldN
                                     onKeyUp={(event) => {handleKeyUp(event, form)}}
                                 />
                             </Form.Item>
-                            <Button
-                                type="sberDefaultGradient"
-                                size="middle"
-                                style={{ borderRadius: '4px' }}
-                                icon={<Icon component={SendMessage} style={{ color: 'white' }}/>}
-                                onClick={(e) => {
-                                    handleSave(e)
-                                    setCommentLength(0)
-                                }}
-                                loading={isLoading}
-                            />
+                            <Mem />
                         </Holder>
                     )
                 }}
