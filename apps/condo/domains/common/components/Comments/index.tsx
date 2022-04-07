@@ -81,7 +81,7 @@ type ActionsForComment = {
 
 interface ICommentsListProps {
     comments: TComment[],
-    createAction?: (formValues) => Promise<void>,
+    createAction?: (formValues) => Promise<TComment>,
     updateAction
     // Place for abilities check. If action of given type is not returned, appropriate button will not be displayed
     actionsFor: (comment: TComment) => ActionsForComment,
@@ -236,9 +236,12 @@ const Comments: React.FC<ICommentsListProps> = ({
 
     const { isSmall } = useLayoutContext()
     const [commentType, setCommentType] = useState(ORGANIZATION_COMMENT_TYPE)
-    const [editableComment, setEditableComment] = useState()
+    const [editableComment, setEditableComment] = useState<TComment>()
+    const [sending, setSending] = useState(false)
 
     const action = useCallback(async (values, syncModifiedFiles) => {
+        setSending(true)
+
         if (editableComment) {
             updateAction(values, editableComment)
             await syncModifiedFiles(editableComment.id)
@@ -248,6 +251,7 @@ const Comments: React.FC<ICommentsListProps> = ({
             await syncModifiedFiles(comment.id)
         }
 
+        setSending(false)
         await refetchComments()
     },
     [commentType, createAction, editableComment, refetchComments, updateAction])
@@ -304,6 +308,7 @@ const Comments: React.FC<ICommentsListProps> = ({
                         action={action}
                         editableComment={editableComment}
                         setEditableComment={setEditableComment}
+                        sending={sending}
                     />
                 ) : (
                     <Typography.Text disabled>{CannotCreateCommentsMessage}</Typography.Text>
