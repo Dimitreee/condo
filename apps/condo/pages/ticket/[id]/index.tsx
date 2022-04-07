@@ -478,9 +478,7 @@ export const TicketPageContent = ({ organization, employee, TicketContent }) => 
         // @ts-ignore
         sortBy: ['createdAt_DESC'],
     })
-    const updateComment = TicketComment.useUpdate({}, () => {
-        refetchComments()
-    })
+    const updateComment = TicketComment.useUpdate({})
     const deleteComment = TicketComment.useSoftDelete({}, () => {
         refetchComments()
     })
@@ -488,7 +486,7 @@ export const TicketPageContent = ({ organization, employee, TicketContent }) => 
     const createCommentAction = TicketComment.useCreate({
         ticket: id,
         user: auth.user && auth.user.id,
-    }, () => { refetchComments() })
+    })
 
     const canShareTickets = get(employee, 'role.canShareTickets')
     const TicketTitleMessage = useMemo(() => getTicketTitleMessage(intl, ticket), [ticket])
@@ -694,6 +692,7 @@ export const TicketPageContent = ({ organization, employee, TicketContent }) => 
                                     // @ts-ignore
                                     createAction={createCommentAction}
                                     updateAction={updateComment}
+                                    refetchComments={refetchComments}
                                     comments={comments}
                                     canCreateComments={get(auth, ['user', 'isAdmin']) || get(employee, ['role', 'canManageTicketComments'])}
                                     actionsFor={comment => {
