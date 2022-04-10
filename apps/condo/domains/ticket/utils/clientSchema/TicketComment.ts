@@ -9,8 +9,9 @@ import { generateReactHooks } from '@condo/domains/common/utils/codegeneration/g
 
 import { TicketComment as TicketCommentGQL } from '@condo/domains/ticket/gql'
 import { TicketComment, TicketCommentUpdateInput, QueryAllTicketCommentsArgs, UserTypeType } from '@app/condo/schema'
+import { ITicketCommentFileUIState } from './TicketCommentFile'
 
-const FIELDS = ['id', 'deletedAt', 'type', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy', 'ticket', 'user', 'content', 'meta']
+const FIELDS = ['id', 'deletedAt', 'type', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy', 'ticket', 'user', 'content']
 const RELATIONS = ['ticket', 'user']
 
 export interface ITicketCommentUIState extends TicketComment {
@@ -22,6 +23,7 @@ export interface ITicketCommentUIState extends TicketComment {
         name: string,
         type: UserTypeType,
     },
+    files: ITicketCommentFileUIState[],
     createdAt: string,
     updatedAt: string,
     deletedAt: string,

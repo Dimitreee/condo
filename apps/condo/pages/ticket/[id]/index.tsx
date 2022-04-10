@@ -1,6 +1,6 @@
 import { EditFilled, FilePdfFilled } from '@ant-design/icons'
 import { TICKET_TYPE_TAG_COLORS } from '@app/condo/domains/ticket/constants/style'
-import { User } from '@app/condo/schema'
+import { SortTicketCommentFilesBy, SortTicketCommentsBy, User } from '@app/condo/schema'
 import ActionBar from '@condo/domains/common/components/ActionBar'
 import { Button } from '@condo/domains/common/components/Button'
 import { Comments } from '@condo/domains/common/components/Comments'
@@ -18,7 +18,13 @@ import { TicketChanges } from '@condo/domains/ticket/components/TicketChanges'
 import { TicketStatusSelect } from '@condo/domains/ticket/components/TicketStatusSelect'
 import { CLOSED_STATUS_TYPE } from '@condo/domains/ticket/constants'
 import { TicketTag } from '@condo/domains/ticket/components/TicketTag'
-import { Ticket, TicketChange, TicketComment, TicketFile } from '@condo/domains/ticket/utils/clientSchema'
+import {
+    Ticket,
+    TicketChange,
+    TicketComment,
+    TicketCommentFile,
+    TicketFile,
+} from '@condo/domains/ticket/utils/clientSchema'
 import {
     getDeadlineType, getHumanizeDeadlineDateDifference,
     getTicketCreateMessage,
@@ -478,7 +484,25 @@ export const TicketPageContent = ({ organization, employee, TicketContent }) => 
         // @ts-ignore
         sortBy: ['createdAt_DESC'],
     })
-    const updateComment = TicketComment.useUpdate({})
+
+    const commentsIds = comments.map(comment => comment.id)
+
+    const { objs: ticketCommentFiles, refetch: refetchCommentFiles } = TicketCommentFile.useObjects({
+        where: { ticketComment: { id_in: commentsIds } },
+        // @ts-ignore
+        sortBy: ['createdAt_DESC'],
+    })
+
+    const commentsWithFiles = comments.map(comment => {
+        comment.files = ticketCommentFiles.filter(file => file.ticketComment.id === comment.id)
+
+        return comment
+    })
+
+    const updateComment = TicketComment.useUpdate({}, () => {
+        refetchComments()
+        refetchCommentFiles()
+    })
     const deleteComment = TicketComment.useSoftDelete({}, () => {
         refetchComments()
     })
@@ -693,7 +717,7 @@ export const TicketPageContent = ({ organization, employee, TicketContent }) => 
                                     createAction={createCommentAction}
                                     updateAction={updateComment}
                                     refetchComments={refetchComments}
-                                    comments={comments}
+                                    comments={commentsWithFiles}
                                     canCreateComments={get(auth, ['user', 'isAdmin']) || get(employee, ['role', 'canManageTicketComments'])}
                                     actionsFor={comment => {
                                         const isAuthor = comment.user.id === auth.user.id

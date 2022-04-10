@@ -55,12 +55,6 @@ const TicketComment = new GQLListSchema('TicketComment', {
             type: Text,
             isRequired: true,
         },
-
-        meta: {
-            schemaDoc: 'Ticket comment meta',
-            type: Json,
-            isRequired: false,
-        },
     },
     plugins: [
         uuided(), versioned(),
