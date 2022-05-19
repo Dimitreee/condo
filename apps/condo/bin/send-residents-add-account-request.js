@@ -19,7 +19,7 @@ const { BillingContextScriptCore, runIt, mapFieldUnique, mapToUsers } = require(
  This script sends push notifications to all users who are:
      * residents of the properties:
         - of the organization with provided billingContextId
-        - having to accounts added
+        - and have no accounts added
      * have available pushTokens
      * have not been sent this king of notifications during current month yet
  */
