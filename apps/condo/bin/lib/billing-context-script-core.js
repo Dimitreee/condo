@@ -5,7 +5,7 @@ const map = require('lodash/map')
 const isEmpty = require('lodash/isEmpty')
 
 const { BillingIntegrationOrganizationContext } = require('@condo/domains/billing/utils/serverSchema')
-const { BILLING_INTEGRATION_ORGANIZATION_CONTEXT_FINISHED_STATUS } = require('@condo/domains/billing/constants/constants')
+const { CONTEXT_FINISHED_STATUS } = require('@condo/domains/miniapp/constants')
 
 const { SendPushScriptCore, runMain } = require('./send-push-script-core')
 const { Organization } = require('@condo/domains/organization/utils/serverSchema')
@@ -70,12 +70,13 @@ class BillingContextScriptCore extends SendPushScriptCore {
      */
     async testContext () {
         try {
-            const billingContext = await BillingIntegrationOrganizationContext.getOne(this.context, { id: this.billingContextId, status: BILLING_INTEGRATION_ORGANIZATION_CONTEXT_FINISHED_STATUS })
+            const billingContext = await BillingIntegrationOrganizationContext.getOne(this.context, { id: this.billingContextId, status: CONTEXT_FINISHED_STATUS })
 
-            if (isEmpty(billingContext)) throw new Error(`Provided billingContextId not found or status is not ${BILLING_INTEGRATION_ORGANIZATION_CONTEXT_FINISHED_STATUS}`)
+            if (isEmpty(billingContext)) throw new Error(`Provided billingContextId not found or status is not ${CONTEXT_FINISHED_STATUS}`)
 
             this.billingContext = billingContext
         } catch (e) {
+            console.log('\r\n')
             console.error(e)
 
             throw new Error(`Provided billingContextId was invalid ${this.billingContextId}`)
