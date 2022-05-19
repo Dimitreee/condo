@@ -837,6 +837,8 @@
   "notification.messages.BILLING_RECEIPT_AVAILABLE_MANUAL.push.title": "Check out your utility bill",
   "notification.messages.BILLING_RECEIPT_AVAILABLE_NO_ACCOUNT_MANUAL.email.subject": "Check out your utility bill",
   "notification.messages.BILLING_RECEIPT_AVAILABLE_NO_ACCOUNT_MANUAL.push.title": "Check out your utility bill",
+  "notification.messages.RESIDENT_ADD_ACCOUNT_MANUAL.email.subject": "Add billing account number please",
+  "notification.messages.RESIDENT_ADD_ACCOUNT_MANUAL.push.title": "Add billing account number please",
   "TicketDeadline": "Ticket deadline",
   "ticket.EmptyList.header": "The list of applications is still empty",
   "ticket.EmptyList.title": "Create the first one, it's simple",
