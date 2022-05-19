@@ -2,6 +2,7 @@ const dayjs = require('dayjs')
 const path = require('path')
 const get = require('lodash/get')
 const map = require('lodash/map')
+const isEmpty = require('lodash/isEmpty')
 
 const { BillingIntegrationOrganizationContext } = require('@condo/domains/billing/utils/serverSchema')
 const { BILLING_INTEGRATION_ORGANIZATION_CONTEXT_FINISHED_STATUS } = require('@condo/domains/billing/constants/constants')
@@ -71,7 +72,7 @@ class BillingContextScriptCore extends SendPushScriptCore {
         try {
             const billingContext = await BillingIntegrationOrganizationContext.getOne(this.context, { id: this.billingContextId, status: BILLING_INTEGRATION_ORGANIZATION_CONTEXT_FINISHED_STATUS })
 
-            if (billingContext.length === 0) throw new Error(`Provided billingContextId not found or status is not ${BILLING_INTEGRATION_ORGANIZATION_CONTEXT_FINISHED_STATUS}`)
+            if (isEmpty(billingContext)) throw new Error(`Provided billingContextId not found or status is not ${BILLING_INTEGRATION_ORGANIZATION_CONTEXT_FINISHED_STATUS}`)
 
             this.billingContext = billingContext
         } catch (e) {
