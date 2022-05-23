@@ -4,7 +4,7 @@ const conf = require('@core/config')
 
 const { BillingReceipt } = require('@condo/domains/billing/utils/serverSchema')
 
-const { BILLING_RECEIPT_AVAILABLE_MANUAL_TYPE } = require('@condo/domains/notification/constants/constants')
+const { BILLING_RECEIPT_AVAILABLE_TYPE } = require('@condo/domains/notification/constants/constants')
 
 const { Resident, ServiceConsumer } = require('@condo/domains/resident/utils/serverSchema')
 
@@ -68,4 +68,4 @@ class ReceiptsNotificationSender extends BillingContextScriptCore {
     }
 }
 
-runIt(ReceiptsNotificationSender, BILLING_RECEIPT_AVAILABLE_MANUAL_TYPE, true).then()
+runIt(ReceiptsNotificationSender, BILLING_RECEIPT_AVAILABLE_TYPE, true).then()

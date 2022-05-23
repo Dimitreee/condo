@@ -4,7 +4,7 @@ const { BillingProperty } = require('@condo/domains/billing/utils/serverSchema')
 
 const { Message, Device } = require('@condo/domains/notification/utils/serverSchema')
 const {
-    RESIDENT_ADD_ACCOUNT_MANUAL_TYPE,
+    RESIDENT_ADD_ACCOUNT_TYPE,
     MESSAGE_SENT_STATUS, MESSAGE_DELIVERED_STATUS,
     MESSAGE_READ_STATUS, MESSAGE_ERROR_STATUS,
 } = require('@condo/domains/notification/constants/constants')
@@ -51,7 +51,7 @@ class ResidentsNotificationSender extends BillingContextScriptCore {
         const { thisMonthStart, nextMonthStart } = this.getMonthStart()
         const messagesWhere = {
             deletedAt: null,
-            type_in: [RESIDENT_ADD_ACCOUNT_MANUAL_TYPE],
+            type_in: [RESIDENT_ADD_ACCOUNT_TYPE],
             status_in: [MESSAGE_SENT_STATUS, MESSAGE_DELIVERED_STATUS, MESSAGE_READ_STATUS, MESSAGE_ERROR_STATUS],
             createdAt_gte: thisMonthStart,
             createdAt_lt: nextMonthStart,
@@ -65,7 +65,7 @@ class ResidentsNotificationSender extends BillingContextScriptCore {
         /**
          * Here we are searching for all non-deleted residents that are:
          * - belong to organization of provided context
-         * - haven't received notification of type RESIDENT_ADD_ACCOUNT_MANUAL_TYPE yet this month
+         * - haven't received notification of type RESIDENT_ADD_ACCOUNT_TYPE yet this month
          * - aren't mentioned in ServiceConsumer relations
          */
         const residentsWhere = { deletedAt: null, property: { id_in: propertyIds }, user: { id_not_in: sentUserIds }, id_not_in: consumerResidentIds }
@@ -111,4 +111,4 @@ class ResidentsNotificationSender extends BillingContextScriptCore {
     }
 }
 
-runIt(ResidentsNotificationSender, RESIDENT_ADD_ACCOUNT_MANUAL_TYPE).then()
+runIt(ResidentsNotificationSender, RESIDENT_ADD_ACCOUNT_TYPE).then()

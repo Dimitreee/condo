@@ -1,13 +1,11 @@
-const get = require('lodash/get')
-
 const conf = require('@core/config')
 
 const { BillingReceipt, BillingProperty } = require('@condo/domains/billing/utils/serverSchema')
 
 const { Message, Device } = require('@condo/domains/notification/utils/serverSchema')
 const {
-    BILLING_RECEIPT_AVAILABLE_MANUAL_TYPE,
-    BILLING_RECEIPT_AVAILABLE_NO_ACCOUNT_MANUAL_TYPE,
+    BILLING_RECEIPT_AVAILABLE_TYPE,
+    BILLING_RECEIPT_AVAILABLE_NO_ACCOUNT_TYPE,
     MESSAGE_SENT_STATUS, MESSAGE_DELIVERED_STATUS,
     MESSAGE_READ_STATUS, MESSAGE_ERROR_STATUS,
 } = require('@condo/domains/notification/constants/constants')
@@ -17,6 +15,10 @@ const { Property } = require('@condo/domains/property/utils/serverSchema')
 const { Resident } = require('@condo/domains/resident/utils/serverSchema')
 
 const { BillingContextScriptCore, runIt, mapFieldUnique, mapToUsers } = require('./lib/billing-context-script-core')
+
+// These are needed temporarily for backwards compatibility in order not to add extra migrations
+const BILLING_RECEIPT_AVAILABLE_MANUAL_TYPE = 'BILLING_RECEIPT_AVAILABLE_MANUAL'
+const BILLING_RECEIPT_AVAILABLE_NO_ACCOUNT_MANUAL_TYPE = 'BILLING_RECEIPT_AVAILABLE_NO_ACCOUNT_MANUAL'
 
 /**
  This script sends push notifications to all users who are:
@@ -60,7 +62,12 @@ class ResidentsNotificationSender extends BillingContextScriptCore {
         const { thisMonthStart, nextMonthStart } = this.getMonthStart()
         const messagesWhere = {
             deletedAt: null,
-            type_in: [BILLING_RECEIPT_AVAILABLE_MANUAL_TYPE, BILLING_RECEIPT_AVAILABLE_NO_ACCOUNT_MANUAL_TYPE],
+            type_in: [
+                BILLING_RECEIPT_AVAILABLE_TYPE,
+                BILLING_RECEIPT_AVAILABLE_NO_ACCOUNT_TYPE,
+                BILLING_RECEIPT_AVAILABLE_MANUAL_TYPE,
+                BILLING_RECEIPT_AVAILABLE_NO_ACCOUNT_MANUAL_TYPE,
+            ],
             status_in: [MESSAGE_SENT_STATUS, MESSAGE_DELIVERED_STATUS, MESSAGE_READ_STATUS, MESSAGE_ERROR_STATUS],
             createdAt_gte: thisMonthStart,
             createdAt_lt: nextMonthStart,
@@ -115,4 +122,4 @@ class ResidentsNotificationSender extends BillingContextScriptCore {
     }
 }
 
-runIt(ResidentsNotificationSender, BILLING_RECEIPT_AVAILABLE_NO_ACCOUNT_MANUAL_TYPE, true).then()
+runIt(ResidentsNotificationSender, BILLING_RECEIPT_AVAILABLE_NO_ACCOUNT_TYPE, true).then()
