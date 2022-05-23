@@ -12,6 +12,8 @@ const { COUNTRIES, DEFAULT_LOCALE } = require('@condo/domains/common/constants/c
 const EXEC_COMMAND = 'yarn workspace @app/condo node'
 const BASE_NAME = path.posix.basename(process.argv[1])
 const MAX_SEND_COUNT = 100
+const DATE_FORMAT = 'YYYY-MM-DD'
+const FORCE_SEND = 'FORCE_SEND'
 
 class BillingContextScriptCore extends SendPushScriptCore {
     constructor ({ messageType, periodRaw, billingContextId, forceSend, maxSendCount }, withPeriod = false) {
@@ -40,15 +42,15 @@ class BillingContextScriptCore extends SendPushScriptCore {
 
         if (this.withPeriod) {
             if (!periodRaw || !billingContextId) {
-                throw new Error(`No period and billingContextId were provided – please execute like following: ${EXEC_COMMAND} ./bin/${BASE_NAME} <period> <contextId> [FORCE_SEND] [<maxSendCount>]`)
+                throw new Error(`No period and billingContextId were provided – please execute like following: ${EXEC_COMMAND} ./bin/${BASE_NAME} <period> <contextId> [${FORCE_SEND}] [<maxSendCount>]`)
             }
 
             if (!dayjs(periodRaw).isValid()) {
-                throw new Error('Incorrect period format was provided. Expected: YYYY-MM-01')
+                throw new Error(`Incorrect period format was provided. Expected: ${DATE_FORMAT}`)
             }
         } else {
             if (!billingContextId) {
-                throw new Error(`No billingContextId was provided – please execute like following: ${EXEC_COMMAND} ./bin/${BASE_NAME} <contextId> [FORCE_SEND] [<maxSendCount>]`)
+                throw new Error(`No billingContextId was provided – please execute like following: ${EXEC_COMMAND} ./bin/${BASE_NAME} <contextId> [${FORCE_SEND}] [<maxSendCount>]`)
             }
         }
     }
@@ -59,7 +61,7 @@ class BillingContextScriptCore extends SendPushScriptCore {
      * @returns {*}
      */
     getPeriod (periodRaw) {
-        return dayjs(periodRaw).date(1).format('YYYY-MM-DD')
+        return dayjs(periodRaw).date(1).format(DATE_FORMAT)
     }
 
     /**
@@ -67,9 +69,11 @@ class BillingContextScriptCore extends SendPushScriptCore {
      * @returns {{thisMonthStart, nextMonthStart}}
      */
     getMonthStart () {
+        const date1 = dayjs().date(1)
+
         return {
-            thisMonthStart: dayjs().date(1).format('YYYY-MM-DD'),
-            nextMonthStart: dayjs().date(1).add('1', 'month').format('YYYY-MM-DD'),
+            thisMonthStart: date1.format(DATE_FORMAT),
+            nextMonthStart: date1.add('1', 'month').format(DATE_FORMAT),
         }
     }
 
@@ -113,13 +117,13 @@ class BillingContextScriptCore extends SendPushScriptCore {
  * @returns {Promise<void>}
  */
 async function prepareAndProceed (Constructor, messageType, withPeriod = false) {
-    const main = async (_args) => {
+    const _prepareAndProceed = async (_args = []) => {
         let periodRaw, billingContextId, forceSendFlag, maxSendCount
 
         if (withPeriod) [periodRaw, billingContextId, forceSendFlag, maxSendCount = MAX_SEND_COUNT] = _args
         if (!withPeriod) [billingContextId, forceSendFlag, maxSendCount = MAX_SEND_COUNT] = _args
 
-        const forceSend = forceSendFlag === 'FORCE_SEND'
+        const forceSend = forceSendFlag === FORCE_SEND
         const instance = new Constructor({ messageType, billingContextId, periodRaw, forceSend, maxSendCount }, withPeriod)
 
         await instance.connect()
@@ -127,25 +131,7 @@ async function prepareAndProceed (Constructor, messageType, withPeriod = false) 
         await instance.proceed()
     }
 
-    // const main = withPeriod
-    //     ? async function ([periodRaw, billingContextId, forceSendFlag, maxSendCount = MAX_SEND_COUNT]) {
-    //         const forceSend = forceSendFlag === 'FORCE_SEND'
-    //         const instance = new Constructor({ messageType, billingContextId, periodRaw, forceSend, maxSendCount }, withPeriod)
-    //
-    //         await instance.connect()
-    //         await instance.loadContextData()
-    //         await instance.proceed()
-    //     }
-    //     : async function ([billingContextId, forceSendFlag, maxSendCount = MAX_SEND_COUNT]) {
-    //         const forceSend = forceSendFlag === 'FORCE_SEND'
-    //         const instance = new Constructor({ messageType, billingContextId, forceSend, maxSendCount })
-    //
-    //         await instance.connect()
-    //         await instance.loadContextData()
-    //         await instance.proceed()
-    //     }
-
-    runFnWithArgs(main)
+    runFnWithArgs(_prepareAndProceed)
 }
 
 /**
@@ -157,7 +143,7 @@ async function prepareAndProceed (Constructor, messageType, withPeriod = false) 
 const mapFieldUnique = (list, fieldPath) => [...new Set(map(list, fieldPath))]
 
 /**
- * Maps array of objects as { [<userIdX>] : [<itemIdY>], ... }
+ * Maps array of objects (entities) connected to users to a dictionary of { [<userIdX>] : [<entityIdY>], ... }
  * @param items
  */
 const mapToUsers = (items) => items.reduce(
