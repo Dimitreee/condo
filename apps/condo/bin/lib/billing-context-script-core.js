@@ -1,13 +1,11 @@
 const dayjs = require('dayjs')
 const path = require('path')
-const get = require('lodash/get')
-const map = require('lodash/map')
-const isEmpty = require('lodash/isEmpty')
+const { get, map, isEmpty } = require('lodash')
 
 const { BillingIntegrationOrganizationContext } = require('@condo/domains/billing/utils/serverSchema')
 const { CONTEXT_FINISHED_STATUS } = require('@condo/domains/miniapp/constants')
 
-const { SendPushScriptCore, runMain } = require('./send-push-script-core')
+const { SendPushScriptCore, runFnWithArgs } = require('./send-push-script-core')
 const { Organization } = require('@condo/domains/organization/utils/serverSchema')
 const { COUNTRIES, DEFAULT_LOCALE } = require('@condo/domains/common/constants/countries')
 
@@ -65,10 +63,21 @@ class BillingContextScriptCore extends SendPushScriptCore {
     }
 
     /**
+     * Returns dates for first day of current and next months
+     * @returns {{thisMonthStart, nextMonthStart}}
+     */
+    getMonthStart () {
+        return {
+            thisMonthStart: dayjs().date(1).format('YYYY-MM-DD'),
+            nextMonthStart: dayjs().date(1).add('1', 'month').format('YYYY-MM-DD'),
+        }
+    }
+
+    /**
      * Requests BillingIntegrationContext data
      * @returns {Promise<void>}
      */
-    async testContext () {
+    async loadContextData () {
         try {
             const billingContext = await BillingIntegrationOrganizationContext.getOne(this.context, { id: this.billingContextId, status: CONTEXT_FINISHED_STATUS })
 
@@ -94,13 +103,6 @@ class BillingContextScriptCore extends SendPushScriptCore {
 
         return this.locale
     }
-
-    getMonthStart () {
-        return {
-            thisMonthStart: dayjs().date(1).format('YYYY-MM-DD'),
-            nextMonthStart: dayjs().date(1).date(40).date(1).format('YYYY-MM-DD'),
-        }
-    }
 }
 
 /**
@@ -110,26 +112,40 @@ class BillingContextScriptCore extends SendPushScriptCore {
  * @param withPeriod
  * @returns {Promise<void>}
  */
-async function runIt (Constructor, messageType, withPeriod = false) {
-    const main = withPeriod
-        ? async function ([periodRaw, billingContextId, forceSendFlag, maxSendCount = MAX_SEND_COUNT]) {
-            const forceSend = forceSendFlag === 'FORCE_SEND'
-            const instance = new Constructor({ messageType, billingContextId, periodRaw, forceSend, maxSendCount }, withPeriod)
+async function prepareAndProceed (Constructor, messageType, withPeriod = false) {
+    const main = async (_args) => {
+        let periodRaw, billingContextId, forceSendFlag, maxSendCount
 
-            await instance.connect()
-            await instance.testContext()
-            await instance.proceed()
-        }
-        : async function ([billingContextId, forceSendFlag, maxSendCount = MAX_SEND_COUNT]) {
-            const forceSend = forceSendFlag === 'FORCE_SEND'
-            const instance = new Constructor({ messageType, billingContextId, forceSend, maxSendCount })
+        if (withPeriod) [periodRaw, billingContextId, forceSendFlag, maxSendCount = MAX_SEND_COUNT] = _args
+        if (!withPeriod) [billingContextId, forceSendFlag, maxSendCount = MAX_SEND_COUNT] = _args
 
-            await instance.connect()
-            await instance.testContext()
-            await instance.proceed()
-        }
+        const forceSend = forceSendFlag === 'FORCE_SEND'
+        const instance = new Constructor({ messageType, billingContextId, periodRaw, forceSend, maxSendCount }, withPeriod)
 
-    runMain(main)
+        await instance.connect()
+        await instance.loadContextData()
+        await instance.proceed()
+    }
+
+    // const main = withPeriod
+    //     ? async function ([periodRaw, billingContextId, forceSendFlag, maxSendCount = MAX_SEND_COUNT]) {
+    //         const forceSend = forceSendFlag === 'FORCE_SEND'
+    //         const instance = new Constructor({ messageType, billingContextId, periodRaw, forceSend, maxSendCount }, withPeriod)
+    //
+    //         await instance.connect()
+    //         await instance.loadContextData()
+    //         await instance.proceed()
+    //     }
+    //     : async function ([billingContextId, forceSendFlag, maxSendCount = MAX_SEND_COUNT]) {
+    //         const forceSend = forceSendFlag === 'FORCE_SEND'
+    //         const instance = new Constructor({ messageType, billingContextId, forceSend, maxSendCount })
+    //
+    //         await instance.connect()
+    //         await instance.loadContextData()
+    //         await instance.proceed()
+    //     }
+
+    runFnWithArgs(main)
 }
 
 /**
@@ -156,7 +172,7 @@ const mapToUsers = (items) => items.reduce(
 
 module.exports = {
     BillingContextScriptCore,
-    runIt,
+    prepareAndProceed,
     mapFieldUnique,
     mapToUsers,
 }

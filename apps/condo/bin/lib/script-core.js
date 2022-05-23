@@ -20,7 +20,7 @@ class ScriptCore {
         this.context = await keystone.createContext({ skipAccessControl: true })
     }
 
-    async loadListByChunks (list, where, sortBy, log = false, chunkSize = CHUNK_SIZE, limit = MAX_ROWS_COUNT) {
+    async loadListByChunks (list, where, sortBy, chunkSize = CHUNK_SIZE, limit = MAX_ROWS_COUNT) {
         return await loadListByChunks({
             context: this.context,
             list,
@@ -28,7 +28,6 @@ class ScriptCore {
             sortBy,
             chunkSize,
             limit,
-            log,
         })
     }
 
@@ -37,7 +36,7 @@ class ScriptCore {
     }
 }
 
-const runMain = (main) => {
+const runFnWithArgs = (main) => {
     main(process.argv.slice(2)).then(() => {
         console.log('\r\n')
         console.log('All done')
@@ -50,5 +49,5 @@ const runMain = (main) => {
 
 module.exports = {
     ScriptCore,
-    runMain,
+    runFnWithArgs,
 }

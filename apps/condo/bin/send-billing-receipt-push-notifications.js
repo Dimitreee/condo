@@ -8,7 +8,7 @@ const { BILLING_RECEIPT_AVAILABLE_TYPE } = require('@condo/domains/notification/
 
 const { Resident, ServiceConsumer } = require('@condo/domains/resident/utils/serverSchema')
 
-const { BillingContextScriptCore, runIt } = require('./lib/billing-context-script-core')
+const { BillingContextScriptCore, prepareAndProceed } = require('./lib/billing-context-script-core')
 
 /**
  This script sends push notifications to all users who are:
@@ -32,7 +32,7 @@ class ReceiptsNotificationSender extends BillingContextScriptCore {
 
         for (const receipt of receipts) {
             // ignore bills that are not payable
-            if (+receipt.toPay > 0) {
+            if (parseFloat(receipt.toPay) > 0) {
                 const serviceConsumerWhere = { billingIntegrationContext: { id: this.billingContextId, deletedAt: null }, billingAccount: { id: receipt.account.id, deletedAt: null }, deletedAt: null }
                 const serviceConsumers = await this.loadListByChunks(ServiceConsumer, serviceConsumerWhere)
 
@@ -68,4 +68,4 @@ class ReceiptsNotificationSender extends BillingContextScriptCore {
     }
 }
 
-runIt(ReceiptsNotificationSender, BILLING_RECEIPT_AVAILABLE_TYPE, true).then()
+prepareAndProceed(ReceiptsNotificationSender, BILLING_RECEIPT_AVAILABLE_TYPE, true).then()

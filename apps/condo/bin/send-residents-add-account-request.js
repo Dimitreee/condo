@@ -13,7 +13,7 @@ const { Property } = require('@condo/domains/property/utils/serverSchema')
 
 const { Resident, ServiceConsumer } = require('@condo/domains/resident/utils/serverSchema')
 
-const { BillingContextScriptCore, runIt, mapFieldUnique, mapToUsers } = require('./lib/billing-context-script-core')
+const { BillingContextScriptCore, prepareAndProceed, mapFieldUnique, mapToUsers } = require('./lib/billing-context-script-core')
 
 /**
  This script sends push notifications to all users who are:
@@ -49,6 +49,9 @@ class ResidentsNotificationSender extends BillingContextScriptCore {
         console.info('[INFO] properties found matching addresses within organization billing properties:', propertyIds.length)
 
         const { thisMonthStart, nextMonthStart } = this.getMonthStart()
+
+        console.info('[INFO] Requesting sent messages for period:', { thisMonthStart, nextMonthStart })
+
         const messagesWhere = {
             deletedAt: null,
             type_in: [this.messageType],
@@ -83,7 +86,7 @@ class ResidentsNotificationSender extends BillingContextScriptCore {
         const deviceUserIds = mapFieldUnique(devices, 'owner.id')
 
         if (!this.forceSend) {
-            console.info(`[INDO] ${deviceUserIds.length} users with pushTokens found to be sent notifications to among ${devices.length} devices.`)
+            console.info(`[INFO] ${deviceUserIds.length} users with pushTokens found to be sent notifications to among ${devices.length} devices.`)
 
             process.exit(0)
         }
@@ -111,4 +114,4 @@ class ResidentsNotificationSender extends BillingContextScriptCore {
     }
 }
 
-runIt(ResidentsNotificationSender, RESIDENT_ADD_BILLING_ACCOUNT_TYPE).then()
+prepareAndProceed(ResidentsNotificationSender, RESIDENT_ADD_BILLING_ACCOUNT_TYPE).then()

@@ -14,7 +14,7 @@ const { Property } = require('@condo/domains/property/utils/serverSchema')
 
 const { Resident } = require('@condo/domains/resident/utils/serverSchema')
 
-const { BillingContextScriptCore, runIt, mapFieldUnique, mapToUsers } = require('./lib/billing-context-script-core')
+const { BillingContextScriptCore, prepareAndProceed, mapFieldUnique, mapToUsers } = require('./lib/billing-context-script-core')
 
 // These are needed temporarily for backwards compatibility in order not to add extra migrations
 const BILLING_RECEIPT_AVAILABLE_MANUAL_TYPE = 'BILLING_RECEIPT_AVAILABLE_MANUAL'
@@ -122,4 +122,4 @@ class ResidentsNotificationSender extends BillingContextScriptCore {
     }
 }
 
-runIt(ResidentsNotificationSender, BILLING_RECEIPT_AVAILABLE_NO_ACCOUNT_TYPE, true).then()
+prepareAndProceed(ResidentsNotificationSender, BILLING_RECEIPT_AVAILABLE_NO_ACCOUNT_TYPE, true).then()

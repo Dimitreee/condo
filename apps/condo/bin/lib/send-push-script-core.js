@@ -2,7 +2,7 @@ const path = require('path')
 
 const { sendMessage } = require('@condo/domains/notification/utils/serverSchema')
 
-const { ScriptCore, runMain } = require('./script-core')
+const { ScriptCore, runFnWithArgs } = require('./script-core')
 
 const BASE_NAME = path.posix.basename(process.argv[1])
 
@@ -27,5 +27,5 @@ class SendPushScriptCore extends ScriptCore {
 
 module.exports = {
     SendPushScriptCore,
-    runMain,
+    runFnWithArgs,
 }
